@@ -1,0 +1,274 @@
+1)****************************************************************************
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+char sfname[10],tfname[10],instr[80],w1[10],w2[60],w3[10],w4[10],mdt[50][4][20];
+FILE *sfp,*tfp;	int mc=0,pntcnt,mec;
+struct MNT
+{	char mname[10]; int pp,kp,pntptr,mdtstart,mdtend;}mnt[10];
+struct PNT
+{	char pname[20],defval[20],actval[20];}pnt[40];
+int searchpnt(char w[])
+{
+	int i;	for(i=mnt[mc].pntptr ; i<mnt[mc].pntptr+mnt[mc].pp+mnt[mc].kp; i++)
+				if(!stricmp(pnt[i].pname,w))	return i;
+				return -1;
+}
+int searchkpt(int pos,char w[])
+{
+	int i,j;	for(i=mnt[pos].pntptr+mnt[pos].pp,j=0 ; j<mnt[pos].kp ; i++,j++)
+				if(!stricmp(w,pnt[i].pname))	return i;
+				return -1;
+}
+int searchmnt(char w[])
+{
+	int i;	for(i=0; i<mc ; i++)	if(!stricmp(mnt[i].mname,w))	return i;
+				return -1;
+}
+void MDP()
+{
+	int n;	fgets(instr,80,sfp);
+	n=sscanf(instr,"%s %s",w1,w2);
+	printf("%s\t%s\n",w1,w2);
+	strcpy(mnt[mc].mname,w1);
+	if(n==2)
+	{  int i=0,j;char *p,str[6][20]; mnt[mc].pntptr=pntcnt;
+		
+	for(p=strtok(w2,",") ; p ;  )
+	{
+		strcpy(str[i++],p);
+		p=strtok(NULL,",");
+	}
+	for(j=0;j<i;j++)
+	{
+	  char *p1=NULL;
+	  p1=strtok(str[j],"=");
+	  puts(p1);		strcpy(pnt[pntcnt].pname,p1);
+	  p1=strtok(NULL,"=");
+	  puts(p1);		strcpy(pnt[pntcnt++].defval,p1); mnt[mc].kp++;
+    }
+  	}
+	mnt[mc+1].pntptr=pntcnt;
+	fgets(instr,80,sfp);	sscanf(instr,"%s %s %s %s",w1,w2,w3,w4);
+	mnt[mc].mdtstart=mec;
+	for( ; stricmp(w1,"mend") ; mec++)
+	{  
+		strcpy(mdt[mec][0],w1);
+		strcpy(mdt[mec][1],w2);
+		strcpy(mdt[mec][2],w3);
+		strcpy(mdt[mec][3],w4);
+		fgets(instr,80,sfp);	sscanf(instr,"%s %s %s %s",w1,w2,w3,w4);
+	}
+	mnt[mc].mdtend=mec;
+}
+void displaypnt()
+{
+	 int i; 	printf("\n---------Parameter Name Table--------\npname\tdefval\tactval\n");
+				for(i=0 ; i<pntcnt ; i++)	printf("%s\t%s\t%s\n",pnt[i].pname,pnt[i].defval,pnt[i].actval);
+}
+void display()
+{
+	int i,j;
+	printf("\n---------Macro Name Table--------\nmname\tpp\tkp\tpntptr\tmdtstart\tmdtend\n");
+	for(i=0 ; i<mc ; i++)	printf("%s\t%d\t%d\t%d\t%d\t%d\n",mnt[i].mname,mnt[i].pp,mnt[i].kp,mnt[i].pntptr,mnt[i].mdtstart,mnt[i].mdtend);
+	printf("\n---------Macro Definition Table--------\n");
+	for(i=0 ; i<mec ; i++)
+	{
+		for(j=0 ; j<4 ; j++)	printf("%s\t",mdt[i][j]);
+		printf("\n");
+	}
+}
+int main(int argc, char *argv[])
+{
+	if(argc==2)
+		strcpy(sfname,argv[1]);
+	else
+	{	printf("Enter source file : "); scanf("%s",sfname);
+		printf("Enter target file : "); scanf("%s",tfname);
+	}
+	
+	sfp=fopen(sfname,"r");
+	tfp=fopen(tfname,"w+");
+	if(sfp==NULL)	{	printf("File not exist.\n"); exit(0);	}
+	else
+	{	while(!feof(sfp))
+		{
+			fgets(instr,80,sfp);  sscanf(instr,"%s %s",w1,w2);
+			if(!feof(sfp))
+			{  
+				if(stricmp(w1,"macro")==0)		{	MDP(); mc++;	}
+				else	fprintf(tfp,"%s",instr);
+			}
+		}
+	}display();
+	fclose(sfp);fclose(tfp);
+	return 0;
+}
+
+
+2)****************************************************************************
+
+#include<stdio.h>
+#include<string.h>
+
+struct Input
+{
+	char pname[10];
+	int bt,at,ft,tbt;
+}tab[5];
+
+struct Sequence
+{
+	int start,end;
+	char pname[10];
+}seq[100],seq1[20];
+
+int finish,time,n,k,prev;
+
+void getinput()
+{
+int i;
+printf("\nEnter no. of processes:");
+scanf("%d",&n);
+for(i=0;i<n;i++)
+{
+printf("Process name:");
+scanf("%s",tab[i].pname);
+printf("Burst name:");
+scanf("%d",&tab[i].bt);
+printf("Arrival name:");
+scanf("%d",&tab[i].at);
+tab[i].tbt=tab[i].bt;
+}
+}
+
+void printinput()
+{
+int i;
+printf("\n\n\nProcess\tBT\tAT:");
+for(i=0;i<n;i++)
+printf("\n%s\t%d\t%d",tab[i].pname,tab[i].tbt,tab[i].at);
+}
+
+void bubble()
+{
+struct Input t;
+int i,j;
+for(i=0;i<n;i++)
+	for(j=0;j<(n-1)-i;j++)
+
+	if(tab[j].at>tab[j+1].at)
+	{
+	t=tab[j];
+	tab[j]=tab[j+1];
+	tab[j+1]=t;
+	}
+}
+
+void printoutput()
+{
+int i;
+float AvgTAT=0,AvgWT=0;
+printf("\n ********Final Table*********");
+printf("\n\nProcess\tAT\tBT\tFT\tTAT\tWT");
+for(i=0;i<n;i++)
+{
+printf("\n\n%s\t%d\t%d\t%d\t%d\t%d",tab[i].pname,tab[i].at,tab[i].bt,tab[i].ft,tab[i].ft-tab[i].at,
+tab[i].ft-tab[i].at-tab[i].bt);
+
+AvgTAT+=tab[i].ft-tab[i].at;
+AvgWT+=tab[i].ft-tab[i].at-tab[i].bt;
+}
+AvgTAT/=n;
+AvgWT/=n;
+printf("\n\nAverage TAT=%f",AvgTAT);
+printf("\n\nAverage WT=%f",AvgWT);
+}
+int arrived(int t)
+{
+	int i;
+	for(i=0;i<n;i++)
+	if(tab[i].at<=t && tab[i].tbt!=0)
+	return 1;
+	return 0;
+
+}
+void processinput()
+{
+	int i=0,j;
+	finish=k=0;
+	while(finish!=n)
+	{
+		if(arrived(time))
+		{
+			for(j=0;j<tab[i].bt;j++)
+			{
+			time++;
+			tab[i].tbt--;
+			tab[i].ft=time;
+			printinput();
+			seq[k].start=prev;
+			seq[k].end=time;
+			strcpy(seq[k++].pname,tab[i].pname);
+			prev=time;
+			if(tab[i].tbt==0)
+				{
+					finish++;
+					break;
+				}
+
+			}			
+           i++;
+		}
+		else
+		{
+			time++;
+			seq[k].start=prev;
+			seq[k].end=time;
+			strcpy(seq[k++].pname,"*");
+			prev=time;
+		}
+	}
+
+}
+void ganttchart()
+{
+	int i,j=1;
+	seq1[0]=seq[0];
+	printf("\n*********GANTT CHART**********");
+	for(i=1;i<k;i++)
+	{
+		if(strcmp(seq1[j-1].pname,seq[i].pname)==0)
+			seq1[j-1].end=seq[i].end;
+		else
+			seq1[j++]=seq[i];
+	}
+	for(i=0;i<j;i++)
+	printf("\n\n%d\t%s\t%d",seq1[i].start,seq1[i].pname,seq1[i].end);
+}
+
+int main()
+{
+int i;
+getinput();
+printf("\nEntered Data");
+printinput();
+bubble();
+printf("\n\nData after sorting according to arrival time:");
+printinput();
+processinput();
+printoutput();
+ganttchart();
+ for(i=0;i<n;i++)
+{
+tab[i].tbt=tab[i].bt=rand()%10+1;
+tab[i].at=tab[i].ft+2;
+}
+
+printf("\n\n *********Data for Second CPU Cycle**********");
+printinput();
+processinput();
+printoutput();
+ganttchart();
+}
+
